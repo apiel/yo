@@ -23,12 +23,8 @@ class Yo
         
     public function render($file, array $parameters = array())
     {
-      //echo $this->_loadTemplate($file); 
-      //die();
-      
       $start = microtime(true);
       $post = [
-          //'page' => file_get_contents($file),
           'page' => $this->_applyBlocks($this->_loadTemplate($file)),
           'data' => $parameters,
       ];
@@ -57,7 +53,7 @@ class Yo
       $filename = $this->_getFileName($file);
       if (file_exists($filename)) {
         $content = file_get_contents($filename);
-        $output = $this->_parseTemplateFile($content);
+        $output = $this->_parseActions($content);
       }
       else {
         throw new Exception('File does not exist. ' . $filename);
@@ -80,9 +76,9 @@ class Yo
       return $ret;
     }
     
-    protected function _parseTemplateFile($content)
+    protected function _parseActions($content, $actions = ['include', 'block'])
     {
-      while($output = $this->_pregAction($content, ['include', 'block'])) {
+      while($output = $this->_pregAction($content, $actions)) {
         $content = $this->_processAction($content, $output->action, 
                                 $output->params, $output->pos);
       }
@@ -113,31 +109,30 @@ class Yo
         }
         else {
           $contentBlock = substr($content, $pos, $output->pos - $pos);
-          $this->_addBlock($params, $contentBlock, $pos);
-          $content = substr($content, 0, $pos) . substr($content, $output->pos);
+          $content = substr($content, 0, $pos) 
+                  . $this->_addBlock($params, $contentBlock) 
+                  . substr($content, $output->pos);
         }
       }
       return $content;
     }
     
-    protected function _addBlock($name, $content, $pos) 
+    protected function _addBlock($name, $content) 
     {
-      if (!isset($this->_blocks[$name])) {
-        $this->_blocks[$name] = (object) [
-          'pos' => $pos,
-          'content' => $content,
-        ];
-      }
-      else {
+      $ret = '<!--blockRender('.$name.')-->';
+      if (isset($this->_blocks[$name])) {
+        $ret = '';
         $content = $this->_applyParentBlock($name, $content);
       }
-      $this->_blocks[$name]->content = $content;
+      $this->_blocks[$name] = $content;
+      
+      return $ret;
     }
     
     protected function _applyParentBlock($name, $content) 
     {
       if ($output = $this->_pregAction($content, ['blockParent'])) {
-        $content = substr($content, 0, $output->pos) . $this->_blocks[$name]->content 
+        $content = substr($content, 0, $output->pos) . $this->_blocks[$name] 
                  . substr($content, $output->pos);
       }
       return $content;
@@ -145,29 +140,13 @@ class Yo
     
     protected function _applyBlocks($content) 
     {
-      foreach($this->_blocks as $block) {
-        $content = substr($content, 0, $block->pos) 
-                . $block->content . substr($content, $block->pos);
-      }
+      return $this->_parseActions($content, ['blockRender']);
+    }
+    
+    protected function __blockRenderAction($content, $params, $pos)
+    {
+      $content = substr($content, 0, $pos) . $this->_blocks[$params] 
+              . substr($content, $pos);
       return $content;
     }
-
-
-//    public function ____render($file, array $parameters = array())
-//    {
-//      $content = file_get_contents($file);
-//      // do some stuff
-//      $tmpHtml = tempnam(sys_get_temp_dir(), 'Yo') . '.html';
-//      file_put_contents($tmpHtml, $content);
-//      $tmpJs = tempnam(sys_get_temp_dir(), 'Yo') . '.js';
-//      file_put_contents($tmpJs, json_encode($parameters));
-//
-//      $cmd = 'phantomjs '.__DIR__.'/yo.js file://'.$tmpHtml.' '.$tmpJs;
-//      $start = microtime(true);
-//      $buffer = shell_exec($cmd);
-//      var_dump(microtime(true)-$start);
-//      return $buffer;
-//      
-//        //return $file . '::do some stuff with phantomjs::' . json_encode($parameters);
-//    }
 }
