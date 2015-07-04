@@ -7,12 +7,14 @@ class Yo
 {
     protected $_fileLoader;
     protected $_blocks = [];
+    protected $_port = 8080;
+    protected $_portEnd = 8081;
     
     public function __construct(FilesystemLoader $fileLoader = null)
     {
       $this->_fileLoader = $fileLoader;
     }
-    
+        
     protected function _getFileName($name)
     {
       if (isset($this->_fileLoader)) {
@@ -37,7 +39,7 @@ class Yo
     protected function _curl($post)
     {
       $ch = curl_init();
-      curl_setopt($ch, CURLOPT_URL, 'http://127.0.0.1:8080');
+      curl_setopt($ch, CURLOPT_URL, 'http://127.0.0.1:' . $this->_getCurlPort());
       curl_setopt($ch, CURLOPT_POST, 1);
       curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post));
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -45,6 +47,21 @@ class Yo
       curl_close ($ch);
       
       return $output;
+    }
+    
+    protected function _getCurlPort()
+    {
+      $file = 'yoPort';
+      $port = $this->_port;
+      if (file_exists($file)) {
+        $port = file_get_contents('yoPort');
+        if (++$port > $this->_portEnd) {
+          $port = $this->_port;
+        }
+      }
+      file_put_contents($file, $port);
+      var_dump($port);
+      return $port;
     }
     
     protected function _loadTemplate($file)
