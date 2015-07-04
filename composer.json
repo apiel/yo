@@ -1,0 +1,21 @@
+{
+    "name": "ap/yo-bundle",
+    "description": "Symfony Yo.php Bundle",
+    "keywords": ["templating", "yo", "phantomjs", "symfony", "symfony2", "sf2"],
+    "homepage": "http://github.com/apiel",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alexandre Piel",
+            "email": "alexandre.piel@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.2"
+    },
+    "autoload": {
+        "psr-0": { "Ap\\Bundle\\YoBundle": "" }
+    },
+    "target-dir": "Ap/Bundle/YoBundle"
+}

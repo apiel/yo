@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="yo.class">Ap\Bundle\YoBundle\Yo</parameter>
+        <parameter key="templating.engine.yo.class">Ap\Bundle\YoBundle\YoEngine</parameter>
+        <parameter key="assetic.yo_formula_loader.class">Ap\Bundle\YoBundle\Assetic\FakeFormulaLoader</parameter>
+        <parameter key="yo.loader.class">Ap\Bundle\YoBundle\Loader\FilesystemLoader</parameter>
+    </parameters>
+
+    <services>
+        <service id="yo" class="%yo.class%">
+            <argument type="service" id="yo.loader" />
+        </service>
+
+        <service id="templating.engine.yo" class="%templating.engine.yo.class%" public="false">
+            <argument type="service" id="yo" />
+            <argument type="service" id="templating.name_parser" />
+            <argument type="service" id="templating.locator" />
+            <!--<argument type="service" id="templating.globals" />-->
+        </service>
+
+        <service id="assetic.yo_formula_loader" class="%assetic.yo_formula_loader.class%" public="false">
+            <tag name="assetic.formula_loader" alias="yo" />
+            <tag name="assetic.templating.yo" />
+        </service>
+        
+        <service id="yo.loader" class="%yo.loader.class%">
+            <argument type="service" id="templating.locator" />
+            <argument type="service" id="templating.name_parser" />
+        </service>        
+    </services>
+</container>
